@@ -4,14 +4,14 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# Enable updating of APEXes
-$(call inherit-product, $(SRC_TARGET_DIR)/product/updatable_apex.mk)
-
 # Dynamic Partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
 # Installs gsi keys into ramdisk, to boot a developer GSI with verified boot.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
+
+# Non a/b
+$(call inherit-product, $(SRC_TARGET_DIR)/product/non_ab_device.mk)
 
 # Project ID Quota
 $(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
@@ -29,6 +29,7 @@ PRODUCT_PACKAGES += \
     audio.usb.default
 
 PRODUCT_PACKAGES += \
+    libldacBT_bco \
     libtinycompress \
     libtinyxml \
     tinymix
@@ -42,12 +43,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio/audio_em.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_em.xml \
     $(LOCAL_PATH)/configs/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
     $(LOCAL_PATH)/configs/audio/audio_policy_configuration_bluetooth_legacy_hal.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration_bluetooth_legacy_hal.xml \
-    $(LOCAL_PATH)/configs/audio/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
     $(LOCAL_PATH)/configs/audio/usb_audio_accessory_only_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/usb_audio_accessory_only_policy_configuration.xml
 
 PRODUCT_COPY_FILES += \
-    frameworks/av/services/audiopolicy/config/a2dp_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/a2dp_audio_policy_configuration.xml \
-    frameworks/av/services/audiopolicy/config/a2dp_in_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/a2dp_in_audio_policy_configuration.xml \
+    frameworks/av/services/audiopolicy/config/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
     frameworks/av/services/audiopolicy/config/bluetooth_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/bluetooth_audio_policy_configuration.xml \
     frameworks/av/services/audiopolicy/config/r_submix_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/r_submix_audio_policy_configuration.xml \
     frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/usb_audio_policy_configuration.xml \
@@ -55,7 +54,7 @@ PRODUCT_COPY_FILES += \
 
 # Biometrics
 PRODUCT_PACKAGES += \
-    android.hardware.biometrics.fingerprint@2.1-service.mt6768
+    android.hardware.biometrics.fingerprint@2.3-service.mt6768
 
 PRODUCT_PACKAGES += \
     libvendor.goodix.hardware.biometrics.fingerprint@2.1.vendor
@@ -81,6 +80,12 @@ PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.6.vendor \
 
 PRODUCT_PACKAGES += \
+    libcamera_metadata.vendor \
+    libexpat.vendor \
+    libpng.vendor \
+    liblz4.vendor
+
+PRODUCT_PACKAGES += \
     libdng_sdk.vendor
 
 PRODUCT_PACKAGES += \
@@ -95,10 +100,16 @@ PRODUCT_COPY_FILES += \
     system/core/libprocessgroup/profiles/cgroups_30.json:$(TARGET_COPY_OUT_VENDOR)/etc/cgroups.json \
     $(LOCAL_PATH)/configs/task_profiles.json:$(TARGET_COPY_OUT_VENDOR)/etc/task_profiles.json
 
+PRODUCT_PACKAGES += \
+    libshim_ui \
+    libshim_ui.vendor
+
 # DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm-service.clearkey \
-    libprotobuf-cpp-lite-3.9.1-vendorcompat
+    libcrypto-v33 \
+    libprotobuf-cpp-lite-3.9.1-vendorcompat \
+    libcrypto_shim.vendor
 
 PRODUCT_PACKAGES += \
     libmockdrmcryptoplugin
@@ -127,7 +138,9 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     libdrm \
-    libdrm.vendor
+    libdrm.vendor \
+    libion.vendor \
+    libui.vendor
 
 # fastbootd
 PRODUCT_PACKAGES += \
@@ -145,10 +158,17 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     FMRadio
 
+# FUSE Passthrough
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.sys.fuse.passthrough.enable=true
+
 # Gatekeeper
 PRODUCT_PACKAGES += \
     android.hardware.gatekeeper@1.0-impl \
     android.hardware.gatekeeper@1.0-service
+
+PRODUCT_PACKAGES += \
+    libgatekeeper.vendor
 
 # GNSS
 PRODUCT_PACKAGES += \
@@ -159,6 +179,9 @@ PRODUCT_PACKAGES += \
     android.hardware.gnss.measurement_corrections@1.0.vendor \
     android.hardware.gnss.measurement_corrections@1.1.vendor \
     android.hardware.gnss.visibility_control@1.0.vendor
+
+PRODUCT_PACKAGES += \
+    libcurl.vendor
 
 # Health
 PRODUCT_PACKAGES += \
@@ -178,7 +201,9 @@ PRODUCT_PACKAGES += \
     android.hidl.allocator@1.0.vendor \
     libhidltransport \
     libhidltransport.vendor \
+    libhidlmemory.vendor \
     libhwbinder \
+    libutils.vendor \
     libhwbinder.vendor
 
 # IMS
@@ -190,6 +215,9 @@ PRODUCT_BOOT_JARS += \
     mediatek-telecom-common \
     mediatek-telephony-base \
     mediatek-telephony-common
+
+PRODUCT_PACKAGES += \
+    libui_shim
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/permissions/privapp-permissions-com.mediatek.ims.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/privapp-permissions-com.mediatek.ims.xml
@@ -207,24 +235,26 @@ PRODUCT_PACKAGES += \
     libkeymaster4.vendor \
     libkeymaster4support.vendor \
     libpuresoftkeymasterdevice.vendor \
-    libsoft_attestation_cert.vendor
+    libsoft_attestation_cert.vendor \
+    libnetutils.vendor
 
 # Lights
 PRODUCT_PACKAGES += \
-    android.hardware.light-service.mt6768
+    android.hardware.light-service.xiaomi
+
+# Lineage Health
+ifneq ($(wildcard hardware/*/interfaces/health),)
+PRODUCT_PACKAGES += \
+    vendor.lineage.health-service.default
+endif
 
 # Media
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/media/media_codecs.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs.xml \
-    $(LOCAL_PATH)/configs/media/media_codecs_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_c2.xml \
     $(LOCAL_PATH)/configs/media/media_codecs_mediatek_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_mediatek_audio.xml \
     $(LOCAL_PATH)/configs/media/media_codecs_mediatek_video.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_mediatek_video.xml \
     $(LOCAL_PATH)/configs/media/media_codecs_performance.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_performance.xml \
     $(LOCAL_PATH)/configs/media/media_profiles_V1_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_profiles_V1_0.xml
-
-PRODUCT_COPY_FILES += \
-    frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_audio.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_google_video_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_video_le.xml
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/seccomp/mediacodec.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediacodec.policy \
@@ -232,11 +262,39 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/seccomp/mediaswcodec.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediaswcodec.policy
 
 PRODUCT_PACKAGES += \
-    libui-v32
+    libui-v32 \
+    libaudiofoundation.vendor \
+    libjsoncpp.vendor \
+    libsqlite.vendor \
+    libdumpstateutil.vendor \
+    APUWareApusysServer.vendor \
+    librpcril.vendor
+
+# Media
+PRODUCT_PACKAGES += \
+    android.hardware.media.c2@1.0.vendor \
+    android.hardware.media.c2@1.1.vendor \
+    android.hardware.media.c2@1.2.vendor \
+    libcodec2_hidl@1.0.vendor \
+    libcodec2_hidl@1.1.vendor \
+    libcodec2_hidl@1.2.vendor \
+    libcodec2_hidl_plugin.vendor \
+    libstagefright_softomx_plugin.vendor \
+    libsfplugin_ccodec_utils.vendor \
+    libcodec2_soft_common.vendor
+
+# Media Codec2 modules
+PRODUCT_PACKAGES += \
+    com.android.media.swcodec \
+    libsfplugin_ccodec
+
+# Minijail
+PRODUCT_PACKAGES += \
+    libavservices_minijail.vendor
 
 # USB
 PRODUCT_PACKAGES += \
-    android.hardware.usb-service.mediatek-legacy
+    android.hardware.usb@1.1-service.mt6768
 
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += \
@@ -257,7 +315,7 @@ PRODUCT_PACKAGES += \
 
 # Power
 PRODUCT_PACKAGES += \
-    android.hardware.power-service.xiaomi-libperfmgr
+    android.hardware.power-service.lineage-libperfmgr
 
 PRODUCT_PACKAGES += \
     libmtkperf_client_vendor \
@@ -282,7 +340,7 @@ PRODUCT_PACKAGES += \
     PowerOffAlarm
 
 # Properties
-include $(LOCAL_PATH)/vendor_logtag.mk
+include $(LOCAL_PATH)/configs/properties/vendor_logtag.mk
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -291,6 +349,7 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml \
     frameworks/native/data/etc/android.hardware.camera.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.xml \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml \
+    frameworks/native/data/etc/android.hardware.camera.front.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.front.xml \
     frameworks/native/data/etc/android.hardware.consumerir.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.consumerir.xml \
     frameworks/native/data/etc/android.hardware.faketouch.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.faketouch.xml \
     frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml \
@@ -303,7 +362,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.sensor.proximity.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.proximity.xml \
     frameworks/native/data/etc/android.hardware.sensor.stepcounter.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.stepcounter.xml \
     frameworks/native/data/etc/android.hardware.sensor.stepdetector.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.stepdetector.xml \
-    frameworks/native/data/etc/android.hardware.telephony.cdma.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.telephony.cdma.xml \
     frameworks/native/data/etc/android.hardware.telephony.gsm.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.telephony.gsm.xml \
     frameworks/native/data/etc/android.hardware.telephony.ims.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.telephony.ims.xml \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml \
@@ -338,11 +396,14 @@ PRODUCT_PACKAGES += \
     android.hardware.radio.deprecated@1.0.vendor \
     android.hardware.radio-V1.4-java
 
+# Remove unwanted packages
+PRODUCT_PACKAGES += \
+    RemovePackages
+
 # Rootdir
 PRODUCT_PACKAGES += \
     fstab.mt6768 \
     fstab.mt6768_ramdisk \
-    init.ago.rc \
     init.connectivity.rc \
     init.modem.rc \
     init.mt6768.rc \
@@ -363,7 +424,8 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     libshim_sensors \
-    libsensorndkbridge
+    libsensorndkbridge \
+    libpower.vendor
 
 # Shims
 PRODUCT_PACKAGES += \
@@ -376,6 +438,9 @@ PRODUCT_SOONG_NAMESPACES += \
     hardware/google/interfaces \
     hardware/google/pixel \
     hardware/mediatek \
+    hardware/xiaomi \
+    hardware/mediatek/libmtkperf_client \
+    hardware/lineage/interfaces/power-libperfmgr \
     $(LOCAL_PATH)
 
 # Thermal
@@ -389,11 +454,19 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.vibrator-service.mediatek
 
+# VNDK
+PRODUCT_PACKAGES += \
+    libunwindstack.vendor \
+    libutilscallstack.vendor
+
 # Wi-Fi
 PRODUCT_PACKAGES += \
     wpa_supplicant \
     hostapd \
     android.hardware.wifi-service
+
+PRODUCT_PACKAGES += \
+    libwifi-hal-wrapper
 
 PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,$(LOCAL_PATH)/configs/wifi/,$(TARGET_COPY_OUT_VENDOR)/etc/wifi)

@@ -5,4 +5,11 @@
 //
 
 soong_namespace {
+    imports: [
+        "hardware/xiaomi"
+    ]
+}
+
+cc_library_shared {
+    name: "libldacBT_bco",
 }
